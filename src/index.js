@@ -1,3 +1,7 @@
+import bootstrapApp from './lifecycle/bootstrap.js';
+import mountApp from './lifecycle/mount.js';
+import unMountApp from './lifecycle/unmount.js';
+
 // 子应用的状态
 export const AppStatus = {
   BEFORE_BOOTSTRAP: 'BEFORE_BOOTSTRAP',
@@ -19,7 +23,7 @@ const type = {
     unmount: Function;
   }>;
   activeRule: (location: Location) => boolean | string;
-  props: object | () => object; // 作为 bootstrap 的参数
+  props: object | () => object; // 作为生命周期函数的参数
   / * 以下是框架方便调用，把 loadApp 返回值加过来的 * /
   bootstrap: Function;
   mount: Function;
@@ -28,7 +32,7 @@ const type = {
 */
 const apps = []; // 子应用集合
 
-export default function registerApplication(app) {
+export function registerApplication(app) {
   if (typeof app.activeRule === 'string') {
       const path = app.activeRule
       app.activeRule = (location = window.location) => location.pathname === path
@@ -63,6 +67,7 @@ function getAppsWithStatus(status) {
   const result = []
   apps.forEach(app => {
       // tobootstrap or tomount
+      // 符合子应用加载的条件，且子应用处于失活状态时(BEFORE_BOOTSTRAP、BOOTSTRAPPED、UNMOUNTED)
       if (isActive(app) && app.status === status) {
           switch (app.status) {
               case AppStatus.BEFORE_BOOTSTRAP:
@@ -73,8 +78,11 @@ function getAppsWithStatus(status) {
           }
       } else if (app.status === AppStatus.MOUNTED && status === AppStatus.MOUNTED) {
           // tounmount
+          // 不符合子应用加载条件，且处于加载条件时
           result.push(app)
       }
+      // 不符合子应用加载条件，且处于失活状态，不做处理
+      // 符合子应用加载条件，且处于挂载状态，不做处理
   })
 
   return result

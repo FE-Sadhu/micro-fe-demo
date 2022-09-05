@@ -1,3 +1,5 @@
+import { loadApps } from '../src/index.js';
+
 const originalPushState = window.history.pushState
 const originalReplaceState = window.history.replaceState
 
